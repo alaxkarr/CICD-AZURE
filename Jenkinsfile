@@ -20,6 +20,15 @@ pipeline {
             }
         }
 
+        stage('Approval') {
+            steps {
+                script {
+                    // Insert any approval mechanism here, e.g., sending notification, waiting for manual approval, etc.
+                    input 'Deploy to Production?'
+                }
+            }
+        }
+
         stage('Deploy') {
             steps {
                 script {
