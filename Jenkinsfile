@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    parameters {
+        booleanParam(name: 'deployToStaging', defaultValue: false, description: 'Deploy to Staging?')
+        booleanParam(name: 'deployToProduction', defaultValue: false, description: 'Deploy to Production?')
+    }
+
     stages {
         stage('Build') {
             steps {
@@ -20,23 +25,33 @@ pipeline {
             }
         }
 
-        stage('Approval') {
-            steps {
-                script {
-                    // Insert any approval mechanism here, e.g., sending notification, waiting for manual approval, etc.
-                    input 'Deploy to Production?'
-                }
+        stage('Deploy to Staging') {
+            when {
+                expression { params.deployToStaging }
             }
-        }
-
-        stage('Deploy') {
             steps {
                 script {
                     // Stop and remove existing Docker container
                     sh 'docker stop node-app1 || true'
                     sh 'docker rm node-app1 || true'
 
-                    // Run Docker container
+                    // Run Docker container for staging
+                    sh 'docker run -d --name node-app1 -p 3000:3000 node-app1'
+                }
+            }
+        }
+
+        stage('Deploy to Production') {
+            when {
+                expression { params.deployToProduction }
+            }
+            steps {
+                script {
+                    // Stop and remove existing Docker container
+                    sh 'docker stop node-app1 || true'
+                    sh 'docker rm node-app1 || true'
+
+                    // Run Docker container for production
                     sh 'docker run -d --name node-app1 -p 3000:3000 node-app1'
                 }
             }
