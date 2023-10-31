@@ -5,16 +5,6 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    // Check if another build is in progress
-                    def currentBuildNumber = currentBuild.number
-                    def inProgressBuilds = Jenkins.instance.getItemByFullName(env.JOB_NAME).buildsInProgress
-
-                    if (inProgressBuilds.size() > 1) {
-                        echo "Another build is already in progress. Aborting this build."
-                        currentBuild.result = 'ABORTED'
-                        error "Another build in progress"
-                    }
-
                     // Build Docker image
                     sh 'docker build . -t node-app1'
                 }
@@ -30,33 +20,23 @@ pipeline {
             }
         }
 
-        stage('Deploy to Staging') {
-            when {
-                expression { params.deployToStaging }
-            }
+        stage('Approval') {
             steps {
                 script {
-                    // Stop and remove existing Docker container
-                    sh 'docker stop node-app1 || true'
-                    sh 'docker rm node-app1 || true'
-
-                    // Run Docker container for staging
-                    sh 'docker run -d --name node-app1 -p 3000:3000 node-app1'
+                    // Insert any approval mechanism here, e.g., sending notification, waiting for manual approval, etc.
+                    input 'Deploy to Production?'
                 }
             }
         }
 
-        stage('Deploy to Production') {
-            when {
-                expression { params.deployToProduction }
-            }
+        stage('Deploy') {
             steps {
                 script {
                     // Stop and remove existing Docker container
                     sh 'docker stop node-app1 || true'
                     sh 'docker rm node-app1 || true'
 
-                    // Run Docker container for production
+                    // Run Docker container
                     sh 'docker run -d --name node-app1 -p 3000:3000 node-app1'
                 }
             }
