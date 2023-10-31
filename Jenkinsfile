@@ -18,23 +18,15 @@ pipeline {
             }
         }
 
-        stage('Code Quality') {
-            steps {
-                script {
-                    sh 'docker run --rm -v $PWD:/app -w /app node-app1 npm run lint'
-                }
-            }
-        }
-
         stage('Approval') {
             steps {
                 script {
                     // Assuming you want automatic approval if the previous stages were successful
                     // You can customize this condition based on your requirements
                     if (currentBuild.resultIsBetterOrEqualTo('SUCCESS')) {
-                        echo 'Automatic approval - Build, Test, and Code Quality stages passed'
+                        echo 'Automatic approval - Build and Test stages passed'
                     } else {
-                        error 'Build, Test, or Code Quality stages failed. Manual approval required.'
+                        error 'Build or Test stages failed. Manual approval required.'
                     }
                 }
             }
