@@ -1,15 +1,20 @@
 pipeline {
     agent any
 
-    parameters {
-        booleanParam(name: 'deployToStaging', defaultValue: false, description: 'Deploy to Staging?')
-        booleanParam(name: 'deployToProduction', defaultValue: false, description: 'Deploy to Production?')
-    }
-
     stages {
         stage('Build') {
             steps {
                 script {
+                    // Check if another build is in progress
+                    def currentBuildNumber = currentBuild.number
+                    def inProgressBuilds = Jenkins.instance.getItemByFullName(env.JOB_NAME).buildsInProgress
+
+                    if (inProgressBuilds.size() > 1) {
+                        echo "Another build is already in progress. Aborting this build."
+                        currentBuild.result = 'ABORTED'
+                        error "Another build in progress"
+                    }
+
                     // Build Docker image
                     sh 'docker build . -t node-app1'
                 }
