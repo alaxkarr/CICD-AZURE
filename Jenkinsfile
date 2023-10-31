@@ -5,7 +5,6 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    // Build Docker image
                     sh 'docker build . -t node-app1'
                 }
             }
@@ -14,7 +13,6 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    // Run your tests (replace the command with your actual test command)
                     sh 'docker run --rm node-app1 npm test'
                 }
             }
@@ -23,8 +21,13 @@ pipeline {
         stage('Approval') {
             steps {
                 script {
-                    // Insert any approval mechanism here, e.g., sending notification, waiting for manual approval, etc.
-                    input 'Deploy to Production?'
+                    // Assuming you want automatic approval if the previous stages were successful
+                    // You can customize this condition based on your requirements
+                    if (currentBuild.resultIsBetterOrEqualTo('SUCCESS')) {
+                        echo 'Automatic approval - Build and Test stages passed'
+                    } else {
+                        error 'Build or Test stages failed. Manual approval required.'
+                    }
                 }
             }
         }
@@ -32,11 +35,8 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    // Stop and remove existing Docker container
                     sh 'docker stop node-app1 || true'
                     sh 'docker rm node-app1 || true'
-
-                    // Run Docker container
                     sh 'docker run -d --name node-app1 -p 3000:3000 node-app1'
                 }
             }
@@ -45,10 +45,7 @@ pipeline {
         stage('Push to Registry') {
             steps {
                 script {
-                    // Login to Docker registry
                     sh 'echo "Aman*9261" | docker login -u "amanlaxkar" --password-stdin'
-
-                    // Push Docker image to registry
                     sh 'docker push amanlaxkar/appimage:node-app1'
                 }
             }
